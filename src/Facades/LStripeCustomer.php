@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Facade;
 
 class LStripeCustomer extends Facade
 {
-  /**
-   * Get the registered name of the component.
-   *
-   * @return string
-   */
-  protected static function getFacadeAccessor()
-  {
-      return 'laraStripeCustomer';
-  }
+    /**
+     * Get the registered name of the component.
+     *
+     * @return string
+     */
+    protected static function getFacadeAccessor()
+    {
+        return 'laraStripeCustomer';
+    }
 }

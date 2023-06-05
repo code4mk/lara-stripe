@@ -1,4 +1,5 @@
 <?php
+
 namespace Code4mk\LaraStripe\Lib;
 
 /**
@@ -7,74 +8,85 @@ namespace Code4mk\LaraStripe\Lib;
  * @copyright Kawsar Soft. (http://kawsarsoft.com)
  */
 
- use Illuminate\Support\Str;
- use Stripe\Stripe;
- use Stripe\Coupon;
- use Config;
+use Config;
+use Stripe\Coupon;
+use Stripe\Stripe;
+use Illuminate\Support\Str;
 
 /**
  * Coupon class
+ *
  * @source https://stripe.com/docs/api/coupons
  */
 class StripeCoupon
 {
     /**
      * Secret key
+     *
      * @var string
      */
     private $secretKey;
 
     /**
      * Currency when coupon amount is fixed
+     *
      * @var string
      */
     private $currency;
 
     /**
      * Coupon amount
-     * @var integer|float
+     *
+     * @var int|float
      */
     private $amount;
 
     /**
      * Coupon amount type
+     *
      * @var string per or fixed
      */
     private $type;
 
     /**
      * Coupon duration
+     *
      * @var string once
      */
     private $duration;
 
     /**
      * Coupon name & coupon id
+     *
      * @var string must be camel_case
      */
     private $name;
 
     /**
      * Coupon duration month
-     * @var integer
+     *
+     * @var int
      */
     private $durationMonth;
 
     /**
      * All coupon data for create
+     *
      * @var [type]
      */
     private $couponData;
 
     public function __construct()
     {
-        if(config::get('lara-stripe.driver') === 'config') {
+        if (config::get('lara-stripe.driver') === 'config') {
             $this->secretKey = config::get('lara-stripe.secret_key');
         }
     }
+
     /**
      * Set secret key
-     * @param  string $data
+     *
+     * @param  string  $data
      * @return $this
      */
     public function setup($data)
@@ -82,60 +94,72 @@ class StripeCoupon
         if (isset($data['secret_key'])) {
             $this->secretKey = $data['secret_key'];
         }
+
         return $this;
     }
 
     /**
      * Coupon amount
-     * @param  int|float $amount
-     * @param  string $type     [fixed,per]
-     * @param  string $currency  fixed amount purpose
+     *
+     * @param  int|float  $amount
+     * @param  string  $type     [fixed,per]
+     * @param  string  $currency  fixed amount purpose
+     *
      * @source https://stripe.com/docs/api/coupons/object#coupon_object-amount_off
+     *
      * @return $this
      */
-    public function amount($amount,$type,$currency = 'usd')
+    public function amount($amount, $type, $currency = 'usd')
     {
         if ($type === 'fixed') {
-            $this->amount = round($amount,2) * 100;
+            $this->amount = round($amount, 2) * 100;
             $this->type = 'fixed';
             $this->currency = $currency;
         } else {
             $this->amount = $amount;
             $this->type = 'per';
         }
-      return $this;
+
+        return $this;
     }
 
     /**
      * Coupon duration
+     *
      * @param  string  $type  [forever,once,repeating]
-     * @param  integer $month
+     * @param  int  $month
+     *
      * @source https://stripe.com/docs/api/coupons/create#create_coupon-duration
+     *
      * @return $this
      */
-    public function duration($type,$month = 1)
+    public function duration($type, $month = 1)
     {
         //forever, once, or repeating.
-      if($type === 'repeating') {
-          $this->durationMonth = $month;
-      }
-      $this->duration = $type;
-      return $this;
+        if ($type === 'repeating') {
+            $this->durationMonth = $month;
+        }
+        $this->duration = $type;
+
+        return $this;
     }
 
     /**
      * Coupon name & id
-     * @param  string $name snake_case
+     *
+     * @param  string  $name snake_case
      * @return $this
      */
     public function name($name)
     {
-      $this->name = Str::snake($name);
-      return $this;
+        $this->name = Str::snake($name);
+
+        return $this;
     }
 
     /**
      * Create coupon & retrieve data
+     *
      * @return  object
      */
     public function get()
@@ -159,29 +183,32 @@ class StripeCoupon
             $this->couponData['duration_in_months'] = $this->durationMonth;
         }
 
-       try {
-         Stripe::setApiKey($this->secretKey);
-         $coupon = Coupon::create($this->couponData);
-         return $coupon;
-       } catch (\Exception $e) {
-         return (object)['isError' => 'true','message'=> $e->getMessage(),'stripe' => $e->getJsonBody()['error']];
-       }
+        try {
+            Stripe::setApiKey($this->secretKey);
+            $coupon = Coupon::create($this->couponData);
+
+            return $coupon;
+        } catch (\Exception $e) {
+            return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
+        }
     }
 
     /**
      * Delete a coupon
-     * @param  string $id coupon id
+     *
+     * @param  string  $id coupon id
      * @return object
      */
     public function delete($id)
     {
         try {
-          Stripe::setApiKey($this->secretKey);
-          $coupon = Coupon::retrieve($id);
-          $coupon->delete();
-          return $coupon;
+            Stripe::setApiKey($this->secretKey);
+            $coupon = Coupon::retrieve($id);
+            $coupon->delete();
+
+            return $coupon;
         } catch (\Exception $e) {
-          return (object)['isError' => 'true','message'=> $e->getMessage(),'stripe' => $e->getJsonBody()['error']];
+            return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
         }
     }
 }

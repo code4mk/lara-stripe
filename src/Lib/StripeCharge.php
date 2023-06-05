@@ -1,4 +1,5 @@
 <?php
+
 namespace Code4mk\LaraStripe\Lib;
 
 /**
@@ -7,93 +8,106 @@ namespace Code4mk\LaraStripe\Lib;
  * @copyright Kawsar Soft. (http://kawsarsoft.com)
  */
 
-use Stripe\Stripe;
+use Config;
+use Stripe\Token;
 use Stripe\Charge;
 use Stripe\Refund;
-use Stripe\Token;
-use Config;
+use Stripe\Stripe;
 
 class StripeCharge
 {
     /**
      * card info num , exp date , exp year , cvc
+     *
      * @var array
      */
     private $card = [];
 
     /**
      * source token (card)
+     *
      * @var [type]
      */
     private $token = '';
 
     /**
      * Charge metadata
+     *
      * @var array
      */
     private $metadata = [];
 
     /**
      * Currency
+     *
      * @var string length 3 and lowercase
      */
     private $currency = 'usd';
 
     /**
      * Charge description
+     *
      * @var string
      */
     private $description = 'Stripe charge by lara-stripe';
 
     /**
      * Charge amount
+     *
      * @var int|float
      */
     private $amount;
 
     /**
      * Secret key
+     *
      * @var string
      */
     private $secretKey;
 
     /**
      * Public key
+     *
      * @var string
      */
     private $publicKey;
 
     /**
      * Payoption card or customer
+     *
      * @var string
      */
     private $payOption;
 
     /**
      * Charge all data
+     *
      * @var object
      */
     private $allOutput;
 
     /**
      * Exception error
+     *
      * @var object
      */
     private $error;
 
     public function __construct()
     {
-        if(config::get('lara-stripe.driver') === 'config') {
+        if (config::get('lara-stripe.driver') === 'config') {
             $this->currency = config::get('lara-stripe.currency');
             $this->secretKey = config::get('lara-stripe.secret_key');
             $this->secretKey = config::get('lara-stripe.public_key');
         }
     }
+
     /**
      * Set credentials, secret and public key
      *
      * Set stripe currency
-     * @param array $data
+     *
+     * @param  array  $data
      * @return $this
      */
     public function setup($data)
@@ -120,11 +134,13 @@ class StripeCharge
     {
         return $this->publicKey;
     }
+
     /**
      * Set card info number,exp month,exp year and cvc.
      *
      * when pass string that is card token which generate by stripe.js
-     * @param array|string $data
+     *
+     * @param  array|string  $data
      * @return $this
      */
     public function card($data)
@@ -138,13 +154,15 @@ class StripeCharge
             $this->token = $data;
         }
         $this->payOption = 'source';
+
         return $this;
     }
 
     /**
      * set customer id
      * this method need for future charge as subcription
-     * @param string $data
+     *
+     * @param  string  $data
      * @return $this
      */
     public function customer($data)
@@ -158,12 +176,13 @@ class StripeCharge
     /**
      * set charge amount
      *
-     * @param float|int|double $amount
+     * @param  float|int|float  $amount
      * @return $this
      */
     public function amount($amount)
     {
-        $this->amount = round($amount,2) * 100 ;
+        $this->amount = round($amount, 2) * 100;
+
         return $this;
     }
 
@@ -172,24 +191,26 @@ class StripeCharge
      *
      * ex: tnx_id,product_id,order_id or simliar
      *
-     * @param array $data
+     * @param  array  $data
      * @return $this
      */
     public function metadata($data)
     {
         $this->metadata = $data;
+
         return $this;
     }
 
     /**
      * set charge description
      *
-     * @param string $text
+     * @param  string  $text
      * @return $this
      */
     public function description($text)
     {
         $this->description = $text;
+
         return $this;
     }
 
@@ -204,18 +225,20 @@ class StripeCharge
             Stripe::setApiKey($this->secretKey);
         } catch (\Exception $e) {
             $this->error = $e;
+
             return $this;
         }
 
-        if (sizeof($this->card) === 4 ) {
+        if (count($this->card) === 4) {
             try {
                 $createToken = Token::create([
-                    'card' => $this->card
+                    'card' => $this->card,
                 ]);
                 $this->token = $createToken->id;
                 // return $this->token;
             } catch (\Exception $e) {
                 $this->error = $e;
+
                 return $this;
             }
         }
@@ -226,12 +249,14 @@ class StripeCharge
                 'currency' => $this->currency,
                 $this->payOption => $this->token,
                 'metadata' => $this->metadata,
-                'description' => $this->description
+                'description' => $this->description,
             ]);
             $this->allOutput = $charge;
+
             return $this;
         } catch (\Exception $e) {
             $this->error = $e;
+
             return $this;
         }
     }
@@ -243,8 +268,8 @@ class StripeCharge
      */
     public function getAll()
     {
-        if($this->error){
-            return (object)['isError' => 'true','message'=> $this->error->getMessage()];
+        if ($this->error) {
+            return (object) ['isError' => 'true', 'message' => $this->error->getMessage()];
         }
 
         if ($this->allOutput !== '') {
@@ -259,8 +284,8 @@ class StripeCharge
      */
     public function get()
     {
-        if($this->error){
-            return (object)['isError' => 'true','message'=> $this->error->getMessage()];
+        if ($this->error) {
+            return (object) ['isError' => 'true', 'message' => $this->error->getMessage()];
         }
         if ($this->allOutput !== '') {
             $output = [
@@ -276,14 +301,14 @@ class StripeCharge
             ];
 
             return (object) $output;
-      }
+        }
     }
 
     /**
      * Charge refund with charge id.
      * Store charge id in database when create charge.
      *
-     * @param string $chargeID
+     * @param  string  $chargeID
      * @return string.
      */
     public function refund($chargeID)
@@ -293,9 +318,10 @@ class StripeCharge
             Refund::create([
                 'charge' => $chargeID,
             ]);
+
             return 'refund';
         } catch (\Exception $e) {
-            return (object)['isError' => 'true','message'=> $e->getMessage()];
+            return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
 
     }

@@ -2,103 +2,20 @@
 
 LaraStripe has payment checkout (session) alias `LaraStripeCheckout`.
 
-# Methods
-
-## setup
-
-`setup` method has `secret,public_key,currency` properties as `array`.
+# Usage
 
 ```php
-LaraStripeCheckout::setup([
-    'secret_key' => '********',
-    'public_key' => '****',
-    'currency' => 'usd'
-])
-```
+$checkout = LaraStripeCheckout::tnx('tnx-1212134')
+                              ->amount(233)
+                              ->get();
+    return response()->json($checkout);
 
-## configure
-
-`configure` method has `success_url,cancel_url,ref_id`.
-
-* `ref_key` can be a `customer ID`, a `cart ID`, or `similar`, and can be used to `reconcile` the session with your internal systems.
-
-```php
-LaraStripeCheckout::configure([
-    'success_url' => 'http://test.co/success?session_id={CHECKOUT_SESSION_ID}',
-    'cancel_url' => 'http://test.co'
-    'ref_key' => 'tnx_4345623232'
-])
-```
-
-## products
-
-`products` method has
-*  `name <required>` `sring`
-* `description <optional>`  `string`
-*  `images <optional>` `array`
-*  `amount <required>` `number`
-*  `quantity <optional>` `integer`
-    * default quantity is 1 . if you add qunatity that will be multiplication with amount `ex amount $20 and quantity 2 that time stripe payment total amount will be $20 * 2 = $40`
-
-
-```php
-LaraStripeCheckout::products([
-    [
-        'name' => 'T-shirt',
-        'description' => 'Banladeshi T-shirt model 23',
-        'images' => ['https://cdn.pixabay.com/photo/2016/12/06/09/31/blank-1886008_960_720.png'],
-        'amount' => 20.50,
-        'quantity' => 2
-    ],
-    [
-        'name' => 'Mobile',
-        'amount' => 150
-    ]
-])
-```
-
-## getSession
-
-getSession method return session id (`sid`) and public key (`pkey`) .  session id as like `cs_test_k8ep1Z7ndlRmAgl0JU0m7SciO8QjSpoFjAIDheeCtCflp4gRdBShozOs` and public key as `pk_test_VNi7F1zcwwffZIi1tAkX1dVs00JfKPsCGR`.
-
-* `type object`
-* pass this data  with view
-
-```php
-LaraStripeCheckout::getSession()
-```
-
-## full code LaraStripeCheckout
-
-* session_id genereate
-
-```php
-$session = LaraStripeCheckout::setup([
-    'secret' => '********',
-    'public_key' => '****',
-    'currency' => 'usd'
-])
-->configure([
-    'success_url' => 'http://test.co/success?session_id={CHECKOUT_SESSION_ID}',
-    'cancel_url' => 'http://test.co'
-    'ref_id' => 'tnx_4345623232'
-])
-->products([
-    [
-        'name' => 'T-shirt',
-        'description' => 'Banladeshi T-shirt model 23',
-        'images' => ['https://cdn.pixabay.com/photo/2016/12/06/09/31/blank-1886008_960_720.png'],
-        'amount' => 20.50,
-        'quantity' => 2
-    ],
-    [
-        'name' => 'Mobile',
-        'amount' => 150
-    ]
-])
-->getSession();
-// return view('checkout',['session' => $session]);
-// return response()->json($session)
+// output 
+{
+"session_id":"cs_test_bhbhbbh",
+"public_key": "pk_test_uiuiui",
+"checkout_url": ""
+}
 ```
 
 # stripe.js
@@ -130,8 +47,8 @@ stripe.redirectToCheckout({
 * include `<script src="https://js.stripe.com/v3/"></script>`
 
 ```js
-var publicKey = '{{ $session->pkey }}'
-var SessionId = '{{ $session->sid }}'
+var publicKey = '{{ $session->public_key }}'
+var SessionId = '{{ $session->session_id }}'
 var stripe = Stripe(publicKey);
 
 stripe.redirectToCheckout({
