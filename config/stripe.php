@@ -1,8 +1,13 @@
 <?php
 
+/**
+ * Stripe configuration.
+ */
 return [
     'driver' => 'config',
-    'currency' => 'usd',
-    'secret_key' => 'sk_test_mBGoFuccDy2KCD4pobbaixKK00qUW0ghu1',
-    'public_key' => 'pk_test_VNi7F1zcwwffZIi1tAkX1dVs00JfKPsCGR'
+    'currency' => env('STRIPE_CURRENCY', 'usd'),
+    'secret_key' => env('STRIPE_SECRET_KEY'),
+    'public_key' => env('STRIPE_PUBLIC_KEY'),
+    'success_url' => env('STRIPE_SUCCESS_URL'),
+    'cancel_url' => env('STRIPE_CANCEL_URL')
 ];
