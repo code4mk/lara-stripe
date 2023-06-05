@@ -13,21 +13,7 @@ class StripeCheckout
      *
      * @var string length 3 and lowercase
      */
-    private $currency = 'usd';
-
-    /**
-     * Checkout description.
-     *
-     * @var string
-     */
-    private $description = 'Stripe payment checkout';
-
-    /**
-     * Checkout products data.
-     *
-     * @var array
-     */
-    private $products = [];
+    private $theCurrency = 'usd';
 
     /**
      * Secret key.
@@ -76,7 +62,7 @@ class StripeCheckout
 
     public function __construct()
     {
-        $this->currency = config('stripe.currency');
+        $this->theCurrency = config('stripe.currency');
         $this->secretKey = config('stripe.secret_key');
         $this->publicKey = config('stripe.public_key');
         $this->successURI = config('stripe.success_url');
@@ -94,7 +80,6 @@ class StripeCheckout
     public function tnx($data)
     {
         $this->referenceKey = $data;
-        $this->theDescription = $data;
 
         return $this;
     }
@@ -139,6 +124,19 @@ class StripeCheckout
     }
 
     /**
+     * Set currency.
+     *
+     * @param $data.
+     * @return $this
+     */
+    public function currency($data)
+    {
+        $this->theCurrency = $data;
+
+        return $this;
+    }
+
+    /**
      * Get session id and public key
      *
      * @return object sid and pkey
@@ -155,7 +153,7 @@ class StripeCheckout
             // Line items.
             $this->checkoutData['line_items'] = [[
                 'price_data' => [
-                    'currency' => $this->currency,
+                    'currency' => $this->theCurrency,
                     'unit_amount' => $this->amount * 100, // Amount in cents (400 USD * 100)
                     'product_data' => [
                         'name' => $this->theTitle],
