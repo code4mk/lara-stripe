@@ -2,8 +2,6 @@
 
 namespace Code4mk\LaraStripe\Lib;
 
-use Stripe\Stripe;
-use Stripe\Customer;
 use Stripe\StripeClient;
 
 class StripeCheckout
