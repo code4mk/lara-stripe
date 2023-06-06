@@ -30,7 +30,7 @@ class LaraStripeServiceProvider extends ServiceProvider
 
         // publish config
         $this->publishes([
-            __DIR__.'/../config/stripe.php' => config_path('lara-stripe.php'),
+            __DIR__.'/../config/lara-stripe.php' => config_path('lara-stripe.php'),
         ], 'config');
 
         AliasLoader::getInstance()->alias('LaraStripeCharge', 'Code4mk\LaraStripe\Facades\LStripeCharge');
