@@ -4,10 +4,10 @@
   "keywords": [
     "stripe",
     "stripe-php",
+    "stripe-payment",
     "laravel",
     "laravel-payment",
-    "code4mk",
-    "0devco"
+    "code4mk"
   ],
   "homepage": "https://github.com/code4mk/lara-stripe",
   "support": {
@@ -28,7 +28,7 @@
     }
   },
   "require": {
-      "stripe/stripe-php": "^7.5"
+    "stripe/stripe-php": "^10.14"
   },
   "extra": {
     "laravel": {
