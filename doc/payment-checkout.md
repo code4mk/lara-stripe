@@ -17,10 +17,11 @@ STRIPE_CANCEL_URL="http://127.0.0.1:8000/checkout/cancel"
 ## checkout
 
 ```php
-$checkout = LaraStripeCheckout::tnx('tnx-1212134')
-                              ->amount(233)
-                              ->get();
-    return response()->json($checkout);
+$checkout =  LaraStripeCheckout::tnx('tnx-1212134')
+                            ->amount('236')
+                            ->additionalData(['transaction_id' => 'tnx-1212'])
+                            ->get();
+return response()->json($checkout);
 
 // output 
 {
