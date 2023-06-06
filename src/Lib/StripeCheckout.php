@@ -60,11 +60,11 @@ class StripeCheckout
 
     public function __construct()
     {
-        $this->theCurrency = config('stripe.currency');
-        $this->secretKey = config('stripe.secret_key');
-        $this->publicKey = config('stripe.public_key');
-        $this->successURI = config('stripe.success_url');
-        $this->cancelURI = config('stripe.cancel_url');
+        $this->theCurrency = config('lara-stripe.currency');
+        $this->secretKey = config('lara-stripe.secret_key');
+        $this->publicKey = config('lara-stripe.public_key');
+        $this->successURI = config('lara-stripe.success_url');
+        $this->cancelURI = config('lara-stripe.cancel_url');
 
         $this->stripe = new StripeClient($this->secretKey);
     }
