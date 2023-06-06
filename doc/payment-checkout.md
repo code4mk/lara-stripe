@@ -4,6 +4,18 @@ LaraStripe has payment checkout (session) alias `LaraStripeCheckout`.
 
 # Usage
 
+## env 
+
+```
+STRIPE_PUBLIC_KEY="public key"
+STRIPE_SECRET_KEY="secret key"
+STRIPE_SUCCESS_URL="http://127.0.0.1:8000/checkout/success"
+STRIPE_CANCEL_URL="http://127.0.0.1:8000/checkout/cancel"
+
+```
+
+## checkout
+
 ```php
 $checkout = LaraStripeCheckout::tnx('tnx-1212134')
                               ->amount(233)
@@ -18,7 +30,7 @@ $checkout = LaraStripeCheckout::tnx('tnx-1212134')
 }
 ```
 
-# stripe.js
+### stripe.js
 
 * include `<script src="https://js.stripe.com/v3/"></script>`
 
@@ -29,9 +41,6 @@ $checkout = LaraStripeCheckout::tnx('tnx-1212134')
 var stripe = Stripe('your_stripe_public_key');
 
 stripe.redirectToCheckout({
-  // Make the id field from the Checkout Session creation API response
-  // available to this file, so you can provide it as parameter here
-  // instead of the {{CHECKOUT_SESSION_ID}} placeholder.
   sessionId: '{{CHECKOUT_SESSION_ID}}'
 }).then(function (result) {
   // If `redirectToCheckout` fails due to a browser or network
@@ -40,7 +49,7 @@ stripe.redirectToCheckout({
 });
 ```
 
-* blade view
+### blade view
 
 ~ javascript
 
@@ -58,37 +67,37 @@ stripe.redirectToCheckout({
 });
 ```
 
-* sessionId will be that code which generate  `getSession method`
 
-# retrive data `success route`
+## success
 
 After success payment stripe redirect to success_url . retrive session data in success_url.
 
 ```php
-Route::get('success',function(Request $request){
-    $data = LaraStripeCheckout::setup([
-        'secret' => '******',
-        'public_key' => '******',
-        'currency' => 'usd'
-    ])
-    ->retrieve($request->session_id);
+Route::get('checkout/success',function(Request $request){
+    $data = LaraStripeCheckout::status(request('session_id'));
+    return response()->json($data);
+
+    // status (succeeded, .....)
+    $data->status;
+    
+    // tnx id
     $data->ref_id;
-    // return `customer ID` `cart ID`, or `similar`
-})
+
+    // additional data (metada)
+    $data->sessions->metadata;
+
+    // payment status
+    $data->sessions->payment_status;
+});
 ```
 
-# refund
+## refund
 
 * Store payment_intent in db when checkout success. ('retrieve method')  
 
 ```php
-$re = LaraStripeCheckout::setup(['secret' => '******'])
-                    ->refund('payment_intent')
-return response()->json($re);
+Route::get('checkout/refund',function(){
+  $charge = LaraStripeCheckout::refund('payment_intent');
+    return response()->json($charge);
+});
 ```
-
-# reference
-
-* [session stripe](https://stripe.com/docs/api/checkout/sessions/object#checkout_session_object-id)
-* [stripe official doc](https://stripe.com/payments/checkout)
-* [stripe payment](https://stripe.com/docs/terminal/payments)
