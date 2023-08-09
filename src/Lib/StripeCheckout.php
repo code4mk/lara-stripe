@@ -202,14 +202,18 @@ class StripeCheckout
      * @param  string  $payment_intent get from database
      * @return object
      */
-    public function refund($payment_intent)
+    public function refund($payment_intent, $amount = '')
     {
-        try {
-            $paymentIntents = $this->stripe->paymentIntents->retrieve($payment_intent);
+        $RefundData = [
+            'payment_intent' => $payment_intent,
+        ];
 
-            $refund = $this->stripe->refunds->create([
-                'charge' => $paymentIntents->charges->data[0]->id,
-            ]);
+        if ($amount != '') {
+            $RefundData['amount'] = $amount * 100;
+        }
+
+        try {
+            $refund = $this->stripe->refunds->create($RefundData);
 
             return $refund;
         } catch (\Exception $e) {
