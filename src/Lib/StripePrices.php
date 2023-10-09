@@ -5,7 +5,7 @@ namespace Code4mk\LaraStripe\Lib;
 use Stripe\StripeClient;
 use Code4mk\LaraStripe\Lib\StripeProducts;
 
-class StripePlans
+class StripePrices
 {
     /**
      * Secret key
@@ -163,26 +163,22 @@ class StripePlans
      *
      * @return object
      */
-    public function createPlan()
+    public function createPrice()
     {
-        $planData = [
-            'amount' => $this->amount,
+        $priceData = [
+            'unit_amount' => $this->amount,
             'currency' => $this->currency,
-            'interval' => $this->interval,
+            'recurring' => ['interval' => $this->interval],
             'product' => $this->product,
         ];
 
-        if ($this->trial_time != '' ) {
-            $planData['trial'] = $this->trial_time;
-        }
-
         if ($this->nickname != '') {
-            $planData['nickname'] = $this->nickname;
+            $priceData['nickname'] = $this->nickname;
         }
 
         try {
-            $plan = $this->stripe->plans->create($planData);
-            return $plan;
+            $price = $this->stripe->prices->create($priceData);
+            return $price;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -197,8 +193,8 @@ class StripePlans
     public function retrieve($id)
     {
         try {
-            $plan = $this->stripe->plans->retrieve($id);
-            return $plan;
+            $price = $this->stripe->prices->retrieve($id);
+            return $price;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -213,11 +209,11 @@ class StripePlans
     public function active($id)
     {
         try {
-            $plan = $this->stripe->plans->update(
+            $price = $this->stripe->prices->update(
                 $id,
                 ['active' => true]
             );
-            return $plan;
+            return $price;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -232,11 +228,11 @@ class StripePlans
     public function deactive($id)
     {
         try {
-            $plan = $this->stripe->plans->update(
+            $price = $this->stripe->prices->update(
                 $id,
                 ['active' => false]
             );
-            return $plan;
+            return $price;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -251,15 +247,16 @@ class StripePlans
     public function delete($id)
     {
         try {
-            $plan = $this->stripe->plans->retrieve($id);
-            $planProduct = $plan->product;
-            $plan->delete();
+            $price = $this->stripe->prices->retrieve($id);
+            $priceProduct = $price->product;
             
-            $product = new StripeProducts();
-            $getProduct = $product->retrieve($planProduct);
-            $getProduct->delete();
+            
+            
+            // $product = new StripeProducts();
+            // $getProduct = $product->retrieve($planProduct);
+            // $getProduct->delete();
 
-            return $plan;
+            return $price;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -272,7 +269,7 @@ class StripePlans
      */
     public function lists()
     {
-        $plans = $this->stripe->plans->all();
+        $plans = $this->stripe->prices->all();
         return $plans;
     }
 }

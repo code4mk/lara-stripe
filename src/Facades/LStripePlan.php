@@ -1,12 +1,5 @@
 <?php
-
 namespace Code4mk\LaraStripe\Facades;
-
-/**
- * @author    @code4mk <hiremostafa@gmail.com>
- * @author    @kawsarsoft <with@kawsarsoft.com>
- * @copyright Kawsar Soft. (http://kawsarsoft.com)
- */
 
 use Illuminate\Support\Facades\Facade;
 

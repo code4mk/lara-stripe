@@ -1,22 +1,8 @@
 <?php
-
 namespace Code4mk\LaraStripe\Lib;
 
-/**
- * @author    @code4mk <hiremostafa@gmail.com>
- * @author    @kawsarsoft <with@kawsarsoft.com>
- * @copyright Kawsar Soft. (http://kawsarsoft.com)
- */
+use Stripe\StripeClient;
 
-use Config;
-use Stripe\Stripe;
-use Stripe\Subscription;
-
-/**
- * Subscription class
- *
- * @source  https://stripe.com/docs/api/subscriptions/create
- */
 class StripeSubscription
 {
     /**
@@ -41,11 +27,11 @@ class StripeSubscription
     private $createSubscriptionData = [];
 
     /**
-     * Plan which will be subcription.
+     * price which will be subcription.
      *
      * @var string
      */
-    private $plan;
+    private $price;
 
     /**
      * Add others properties of create the subscription.
@@ -83,26 +69,12 @@ class StripeSubscription
      */
     private $coupon;
 
+    private $stripe;
+
     public function __construct()
     {
-        if (config::get('lara-stripe.driver') === 'config') {
-            $this->secretKey = config::get('lara-stripe.secret_key');
-        }
-    }
-
-    /**
-     * Set secret key.
-     *
-     * @param  string  $data
-     * @return $this
-     */
-    public function setup($data)
-    {
-        if (isset($data['secret_key'])) {
-            $this->secretKey = $data['secret_key'];
-        }
-
-        return $this;
+        $this->secretKey = config('lara-stripe.secret_key');
+        $this->stripe = new StripeClient($this->secretKey);
     }
 
     /**
@@ -114,20 +86,18 @@ class StripeSubscription
     public function customer($id)
     {
         $this->customer = $id;
-
         return $this;
     }
 
     /**
-     * Plan id which generate by LaraStripePlan  alias.
+     * Price id
      *
      * @param  string  $id plan id
      * @return $this
      */
-    public function plan($id)
+    public function priceId($id)
     {
-        $this->plan = $id;
-
+        $this->price = $id;
         return $this;
     }
 
@@ -203,29 +173,18 @@ class StripeSubscription
      *
      * @return object
      */
-    public function get()
+    public function create()
     {
-        $this->createSubscriptionData['customer'] = $this->customer;
-        $this->createSubscriptionData['items'] = [['plan' => $this->plan]];
-        if ($this->trialPlan) {
-            $this->createSubscriptionData['trial_from_plan'] = true;
-        }
-        if ($this->trial) {
-            $this->createSubscriptionData['trial_period_days'] = $this->trial;
-        }
-        if ($this->coupon) {
-            $this->createSubscriptionData['coupon'] = $this->coupon;
-        }
-        if ($this->source) {
-            $this->createSubscriptionData['default_source'] = $this->source;
-        }
-        $subsData = array_merge($this->createSubscriptionData, $this->extra);
+        $subscriptionsData = [
+            'customer' => $this->customer,
+            'items' => [
+                ['price' => $this->price],
+            ],
+        ];
 
         try {
-            Stripe::setApiKey($this->secretKey);
-            $subs = Subscription::create($subsData);
-
-            return $subs;
+            $subscriptions = $this->stripe->subscriptions->create($subscriptionsData);
+            return $subscriptions;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -240,9 +199,8 @@ class StripeSubscription
     public function retrieve($id)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
-            $subs = Subscription::retrieve($id);
-
+            
+            $subs = $this->stripe->subscriptions->retrieve($id);
             return $subs;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
@@ -258,11 +216,11 @@ class StripeSubscription
     public function cancel($id)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
-            $subs = Subscription::retrieve($id);
-            $subs->cancel();
+            // Stripe::setApiKey($this->secretKey);
+            // $subs = Subscription::retrieve($id);
+            // $subs->cancel();
 
-            return $subs;
+            // return $subs;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
