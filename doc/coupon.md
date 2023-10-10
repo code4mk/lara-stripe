@@ -1,76 +1,74 @@
-# Coupon
+## Usage
 
-lara-stripe has `LaraStripeCoupon` alias for coupon related task.
+Here are some common operations you can perform using the `StripeCoupon` library:
 
-#Methods
-
-## setup() `required`
-
-setup method as usual setup secret key
-
-* `secret_key`  required
+### Creating a Coupon
 
 ```php
-setup([
-    'secret_key' => '********'
-])
+use Code4mk\LaraStripe\Lib\StripeCoupon;
+
+$stripeCoupon = new StripeCoupon();
+
+$stripeCoupon->amount(10.00) // Set the coupon amount
+    ->name('my_coupon') // Set the coupon name
+    ->duration('once') // Set the coupon duration
+    ->create(); // Create the coupon
 ```
 
-## name() `required`
-
-Coupon name. Automatic convert camel_case
+### Retrieving a Coupon
 
 ```php
-name('launch_20')
+use Code4mk\LaraStripe\Lib\StripeCoupon;
+
+$stripeCoupon = new StripeCoupon();
+
+$couponId = 'coupon_id_here';
+
+$stripeCoupon->retrieve($couponId); // Retrieve the coupon by ID
 ```
 
-## amount() `required`
-
-Set coupon amount and copoun type `fixed/per` fixed or percent.
-
-* amount has 3 parameter amount (`required`) , type (`required`) and currency . `currency is required when type is fixed`
+### Listing Coupons
 
 ```php
-# percent
-amount(20,'per')
-# fixed
-amount(20.50,'fixed','usd')
-````
+use Code4mk\LaraStripe\Lib\StripeCoupon;
 
-## duration() `required`
+$stripeCoupon = new StripeCoupon();
 
-* duration has 2 parameter one is type another is month.
-* type `required` `[forever,once,repeating]`
-* if type `repeating` that time `month` is `required`. month is integer value.
-
-```php
-duration('once')
-# if repeating
-duration('repeating',4)
+$stripeCoupon->lists(); // Retrieve a list of all coupons
 ```
 
-## get() `required`
-
-* create the coupon and retrive created coupon data.
-* return `object`
+### Deleting a Coupon
 
 ```php
-get()
+use Code4mk\LaraStripe\Lib\StripeCoupon;
+
+$stripeCoupon = new StripeCoupon();
+
+$couponId = 'coupon_id_here';
+
+$stripeCoupon->delete($couponId); // Delete the coupon by ID
 ```
 
-# `Create coupon -> Full code`
+For more details on available methods and parameters, refer to the inline code comments and the [Stripe API documentation](https://stripe.com/docs/api/coupons).
+
+## Error Handling
+
+The library provides basic error handling. If an error occurs during an operation, it returns an object with an `isError` property set to `true`, along with an error message and the Stripe error details.
 
 ```php
-LaraStripeCoupon::setup(['secret_key' => '*****'])
-            ->name('launch_20')
-            ->amount(10,'per')
-            ->duration('month')
-            ->get()
+$result = $stripeCoupon->create();
+
+if ($result->isError === true) {
+    // Handle the error
+    echo "Error: " . $result->message;
+    echo "Stripe Error: " . $result->stripe['message'];
+}
 ```
 
-# `Delete the coupon`
+## License
 
-```php
-LaraStripeCoupon::setup(['secret_key' => '*****'])
-            ->delete('coupon_id')
-```
+This library is open-source software licensed under the MIT License. You can find the full license text in the [LICENSE](LICENSE) file.
+
+## Author
+
+This library was created by [Your Name] and is maintained by [Your Organization]. Feel free to contribute by submitting issues or pull requests on the [GitHub repository](https://github.com/your-repo-link).
