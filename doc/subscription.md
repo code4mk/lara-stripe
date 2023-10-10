@@ -1,117 +1,62 @@
-# Subscription
+## Usage
 
-lara-stripe has `LaraStripeSubs` alias for subscription related task.
+Here are some common operations you can perform using the `StripeSubscription` library:
 
-# Methods
-
-## `setup()` `required`
-
-setup method as usual setup secret key
-
-* `secret_key`  `required`
+### Creating a Subscription
 
 ```php
-setup([
-    'secret_key' => '********'
-])
+use Code4mk\LaraStripe\Lib\StripeSubscription;
+
+$stripeSubscription = new StripeSubscription();
+
+$customerId = 'customer_id_here';
+$priceId = 'price_id_here';
+
+$stripeSubscription->customer($customerId) // Set the customer ID
+    ->priceId($priceId) // Set the price (plan) ID
+    ->metaData(['key' => 'value']) // Set additional metadata (optional)
+    ->trialPlan() // Use the default trial from the plan (optional)
+    ->trial(7) // Set a custom trial period in days (optional)
+    ->source('card_source_id') // Set the card source (optional)
+    ->coupon('coupon_code_here') // Apply a coupon (optional)
+    ->create(); // Create the subscription
 ```
 
-## `customer()` `required`
-
-which customer subscribe.
-
-* [create customer first](https://github.com/code4mk/lara-stripe/blob/master/doc/customer.md)
+### Retrieving a Subscription
 
 ```php
-customer('customer_id')
+use Code4mk\LaraStripe\Lib\StripeSubscription;
+
+$stripeSubscription = new StripeSubscription();
+
+$subscriptionId = 'subscription_id_here';
+
+$stripeSubscription->retrieve($subscriptionId); // Retrieve the subscription by ID
 ```
 
-## `plan()` `required`
-
-Customer subscription which plan.
-
-* [create a plan first](https://github.com/code4mk/lara-stripe/blob/master/doc/customer.md)
+### Canceling a Subscription
 
 ```php
-plan('plan_id')
+use Code4mk\LaraStripe\Lib\StripeSubscription;
+
+$stripeSubscription = new StripeSubscription();
+
+$subscriptionId = 'subscription_id_here';
+
+$stripeSubscription->cancel($subscriptionId); // Cancel the subscription by ID
 ```
 
-## `trialPlan()` `optional`
+For more details on available methods and parameters, refer to the inline code comments and the [Stripe API documentation](https://stripe.com/docs/api/subscriptions).
 
-If want to set trial period from plan.
+## Error Handling
 
-```php
-trialPlan()
-```
-
-## `trail()` `optional`
-
-Set tril period for the subscription. This override the plan trail.
+The library provides basic error handling. If an error occurs during an operation, it returns an object with an `isError` property set to `true`, along with an error message.
 
 ```php
-trial(5)
-```
+$result = $stripeSubscription->create();
 
-## `source()` `optional`
-
-set source (card token generate from stipe.js).
-
-```php
-source('tok_***')
-```
-
-## `coupon()` `optioanl`
-
-Subscription with a coupon
-
-```php
-coupon('coupon_code')
-```
-
-## extra `optional`
-
-Add optional attributes which are not include this package for creating subscription.
-
-* [all attributes lists](https://stripe.com/docs/api/subscriptions/create)
-
-```php
-extra([
-     .....
-])
-```
-
-## `get()` `required`
-
-* create the subscription and retrive created subscription data.
-* return `object`
-
-```php
-get()
-```
-
-# `Create a Subscription -> Full code`
-
-
-```php
-LaraStripeSubs::setup(['secret_key'=>'******'])
-            ->customer('customer_id')
-            ->plan('plan_id')
-            ->source('tok_***')
-            ->trialPlan()
-            ->coupon('coupon_id')
-            ->get();
-```
-
-# `Retrieve the subscription`
-
-```php
-LaraStripeSubs::setup(['secret_key'=>'******'])
-            ->retrieve('subs_id')        
-```
-
-# `Cancel the subscription`
-
-```php
-LaraStripeSubs::setup(['secret_key'=>'******'])
-            ->cancel('subs_id')        
+if ($result->isError === true) {
+    // Handle the error
+    echo "Error: " . $result->message;
+}
 ```
