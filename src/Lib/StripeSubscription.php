@@ -38,7 +38,7 @@ class StripeSubscription
      *
      * @var array
      */
-    private $extra = [];
+    private $metadata = [];
 
     /**
      * Trial default from plan.
@@ -67,7 +67,7 @@ class StripeSubscription
      *
      * @var string
      */
-    private $coupon;
+    private $couponCode;
 
     private $stripe;
 
@@ -107,12 +107,11 @@ class StripeSubscription
      * @param  array  $data
      * @return $this
      */
-    public function extra($data = [])
+    public function metaData($data = [])
     {
         if (is_array($data)) {
-            $this->extra = $data;
+            $this->metadata = $data;
         }
-
         return $this;
     }
 
@@ -138,7 +137,6 @@ class StripeSubscription
     public function trial($day)
     {
         $this->trial = $day;
-
         return $this;
     }
 
@@ -151,20 +149,18 @@ class StripeSubscription
     public function source($code)
     {
         $this->source = $code;
-
         return $this;
     }
 
     /**
      * Coupon apply
      *
-     * @param  string  $code
+     * @param string $code
      * @return $this
      */
     public function coupon($code)
     {
-        $this->coupon = $code;
-
+        $this->couponCode = $code;
         return $this;
     }
 
@@ -182,6 +178,26 @@ class StripeSubscription
             ],
         ];
 
+        // meta data associate array.
+        if (count($this->metadata) > 0) {
+            $subscriptionsData['metadata'] = $this->metadata;
+        }
+
+        // copuon
+        if ($this->couponCode != '') {
+            $subscriptionsData['coupon'] = $this->couponCode;
+        }
+
+        // default source
+        if ($this->source != '') {
+            $subscriptionsData['default_source'] = $this->source;
+        }
+
+        // trial in days
+        if ($this->trial) {
+            $subscriptionsData['trial_period_days'] = $this->trial;
+        }
+
         try {
             $subscriptions = $this->stripe->subscriptions->create($subscriptionsData);
             return $subscriptions;
@@ -193,15 +209,15 @@ class StripeSubscription
     /**
      * Retrieve a subscription with id
      *
-     * @param  string  $id
+     * @param string $id
      * @return object
      */
     public function retrieve($id)
     {
         try {
             
-            $subs = $this->stripe->subscriptions->retrieve($id);
-            return $subs;
+            $subscription = $this->stripe->subscriptions->retrieve($id);
+            return $subscription;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -216,11 +232,8 @@ class StripeSubscription
     public function cancel($id)
     {
         try {
-            // Stripe::setApiKey($this->secretKey);
-            // $subs = Subscription::retrieve($id);
-            // $subs->cancel();
-
-            // return $subs;
+            $subscription = $this->stripe->subscriptions->cancel($id);
+            return $subscription;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
