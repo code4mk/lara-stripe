@@ -1,19 +1,7 @@
 <?php
-
 namespace Code4mk\LaraStripe\Lib;
 
-/**
- * @author    @code4mk <hiremostafa@gmail.com>
- * @author    @kawsarsoft <with@kawsarsoft.com>
- * @copyright Kawsar Soft. (http://kawsarsoft.com)
- */
-
-// https://stripe.com/docs/saving-cards
-// https://stripe.com/docs/api/customers/list
-
-use Config;
-use Stripe\Stripe;
-use Stripe\Customer;
+use Stripe\StripeClient;
 
 class StripeCustomer
 {
@@ -45,27 +33,16 @@ class StripeCustomer
      */
     private $createCustomerData = [];
 
+    private $stripe;
+    private $name;
+    private $email;
+
     public function __construct()
     {
-        if (config::get('lara-stripe.driver') === 'config') {
-            $this->secretKey = config::get('lara-stripe.secret_key');
-        }
+        $this->secretKey = config('lara-stripe.secret_key');
+        $this->stripe = new StripeClient($this->secretKey);
     }
 
-    /**
-     * Set secret key
-     *
-     * @param  string  $data
-     * @return $this
-     */
-    public function setup($data)
-    {
-        if (isset($data['secret_key'])) {
-            $this->secretKey = $data['secret_key'];
-        }
-
-        return $this;
-    }
 
     /**
      * set customer source (card) , email
@@ -74,7 +51,7 @@ class StripeCustomer
      * @param  array  $datas
      * @return $this
      */
-    public function create($datas)
+    public function createl($datas)
     {
         foreach ($datas as $key => $data) {
             $this->createCustomerData[$key] = $data;
@@ -92,7 +69,16 @@ class StripeCustomer
     public function metadata($data)
     {
         $this->metadata = $data;
+        return $this;
+    }
 
+    public function name($data) {
+        $this->name = $data;
+        return $this;
+    }
+
+    public function email($data) {
+        $this->email = $data;
         return $this;
     }
 
@@ -101,60 +87,81 @@ class StripeCustomer
      *
      * @return object
      */
-    public function get()
+    public function create()
     {
-        if (! isset($this->createCustomerData['metadata'])) {
-            $this->createCustomerData['metadata'] = $this->metadata;
+        $customerData = [];
+        if ($this->name) {
+            $customerData['name'] = $this->name;
+        }
+
+        if ($this->email) {
+            $customerData['email'] = $this->email;
+        }
+
+        if ($this->metadata) {
+            $customerData['metadata'] = $this->metadata;
         }
 
         try {
-            Stripe::setApiKey($this->secretKey);
-            $this->customer = Customer::create($this->createCustomerData);
-
-            return $this->customer;
+            $customer = $this->stripe->customers->create($customerData);
+            return $customer;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
-
     }
 
     /**
      * Retrive customer with $cusIdid.
      *
-     * @param  string  $cusIdid
+     * @param  string  $id
      * @return object
      */
-    public function retrieve($cusId)
+    public function retrieve($id)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
-
-            return Customer::retrieve($cusId);
+            $customer = $this->stripe->customers->retrieve($id);
+            return $customer;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
 
     }
 
-    public function cards($cusId)
+    public function delete($id) {
+        try {
+            $customer = $this->stripe->customers->delete($id);
+            return $customer;
+        } catch (\Exception $e) {
+            return (object) ['isError' => 'true', 'message' => $e->getMessage()];
+        }
+    }
+
+    public function lists() {
+        try {
+            $customers = $this->stripe->customers->all();
+            return $customers;
+        } catch (\Exception $e) {
+            return (object) ['isError' => 'true', 'message' => $e->getMessage()];
+        }
+    }
+
+    public function cards($id)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
-            $cus = Customer::retrieve($cusId);
-            $data = [];
-            $cards = $cus->sources->data;
-            $defaultCard = $cus->default_source;
+            $customer = $this->stripe->customers->retrieve($id);
+            $sources = $customer->sources->data;
+            $defaultCard = $customer->default_source;
+            $cards = [];
 
-            foreach ($cards as $key => $value) {
-                if ($value->id === $defaultCard) {
-                    $data[$key] = ['cardId' => $value->id, 'last4' => $value->last4, 'brand' => $value->brand, 'customer' => $value->customer, 'isDefault' => true];
+            foreach ($sources as $key => $source) {
+                if ($source->id === $defaultCard) {
+                    $cards[$key] = ['cardId' => $source->id, 'last4' => $source->last4, 'brand' => $source->brand, 'customer' => $source->customer, 'isDefault' => true];
                 } else {
-                    $data[$key] = ['cardId' => $value->id, 'last4' => $value->last4, 'brand' => $value->brand, 'customer' => $value->customer, 'isDefault' => false];
+                    $cards[$key] = ['cardId' => $source->id, 'last4' => $source->last4, 'brand' => $source->brand, 'customer' => $source->customer, 'isDefault' => false];
                 }
             }
-
-            return $data;
-
+            
+            return $cards;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -163,16 +170,14 @@ class StripeCustomer
     public function addCard($cusId, $cardToken, $max = 3)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
             if (count($this->cards($cusId)) <= $max - 1) {
-                $cus = Customer::createSource($cusId, [
+                $customer = $this->stripe->customers->createSource($cusId, [
                     'source' => $cardToken,
                 ]);
-
-                return $cus;
+                return $customer;
             }
 
-            return "You already exceed card quota ${max}";
+            return "You already exceed card quota {$max}";
 
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
@@ -182,15 +187,12 @@ class StripeCustomer
     public function deleteCard($cusId, $cardToken)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
             if (count($this->cards($cusId)) > 1) {
-                $cus = Customer::deleteSource($cusId, $cardToken);
-
-                return $cus;
+                $customerSource = $this->stripe->customers->deleteSource($cusId, $cardToken);
+                return $customerSource;
             }
 
-            return "you can't delete the card";
-
+            return "You can't delete the card";
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
@@ -206,12 +208,11 @@ class StripeCustomer
     public function setDefaultCard($cusId, $cusSourceId)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
-            $cus = Customer::update($cusId, [
+            $customer = $this->stripe->customers->update($cusId, [
                 'default_source' => $cusSourceId,
             ]);
 
-            return $cus;
+            return $customer;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }
