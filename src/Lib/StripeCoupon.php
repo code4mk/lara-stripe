@@ -2,22 +2,9 @@
 
 namespace Code4mk\LaraStripe\Lib;
 
-/**
- * @author    @code4mk <hiremostafa@gmail.com>
- * @author    @kawsarsoft <with@kawsarsoft.com>
- * @copyright Kawsar Soft. (http://kawsarsoft.com)
- */
-
-use Config;
-use Stripe\Coupon;
-use Stripe\Stripe;
 use Illuminate\Support\Str;
+use Stripe\StripeClient;
 
-/**
- * Coupon class
- *
- * @source https://stripe.com/docs/api/coupons
- */
 class StripeCoupon
 {
     /**
@@ -32,14 +19,14 @@ class StripeCoupon
      *
      * @var string
      */
-    private $currency;
+    private $currency = 'usd';
 
     /**
      * Coupon amount
      *
      * @var int|float
      */
-    private $amount;
+    private $amount = 0;
 
     /**
      * Coupon amount type
@@ -69,47 +56,27 @@ class StripeCoupon
      */
     private $durationMonth;
 
-    /**
-     * All coupon data for create
-     *
-     * @var [type]
-     */
-    private $couponData;
+    private $stripe;
 
     public function __construct()
     {
-        if (config::get('lara-stripe.driver') === 'config') {
-            $this->secretKey = config::get('lara-stripe.secret_key');
-        }
+        $this->secretKey = config('lara-stripe.secret_key');
+        $this->stripe = new StripeClient($this->secretKey);
     }
 
-    /**
-     * Set secret key
-     *
-     * @param  string  $data
-     * @return $this
-     */
-    public function setup($data)
-    {
-        if (isset($data['secret_key'])) {
-            $this->secretKey = $data['secret_key'];
-        }
-
-        return $this;
-    }
 
     /**
      * Coupon amount
      *
-     * @param  int|float  $amount
-     * @param  string  $type     [fixed,per]
-     * @param  string  $currency  fixed amount purpose
+     * @param int|float  $amount
+     * @param string  $currency  fixed amount purpose
+     * @param string  $type [fixed,percent]
      *
      * @source https://stripe.com/docs/api/coupons/object#coupon_object-amount_off
      *
      * @return $this
      */
-    public function amount($amount, $type, $currency = 'usd')
+    public function amount($amount, $type = 'fixed', $currency = 'usd')
     {
         if ($type === 'fixed') {
             $this->amount = round($amount, 2) * 100;
@@ -117,7 +84,7 @@ class StripeCoupon
             $this->currency = $currency;
         } else {
             $this->amount = $amount;
-            $this->type = 'per';
+            $this->type = 'percent';
         }
 
         return $this;
@@ -126,19 +93,16 @@ class StripeCoupon
     /**
      * Coupon duration
      *
-     * @param  string  $type  [forever,once,repeating]
-     * @param  int  $month
-     *
-     * @source https://stripe.com/docs/api/coupons/create#create_coupon-duration
-     *
+     * @param string $type  [forever,once,repeating]
+     * @param int $month
      * @return $this
      */
     public function duration($type, $month = 1)
     {
-        //forever, once, or repeating.
         if ($type === 'repeating') {
             $this->durationMonth = $month;
         }
+
         $this->duration = $type;
 
         return $this;
@@ -147,46 +111,64 @@ class StripeCoupon
     /**
      * Coupon name & id
      *
-     * @param  string  $name snake_case
+     * @param string $name snake_case
      * @return $this
      */
     public function name($name)
     {
         $this->name = Str::snake($name);
-
         return $this;
     }
 
     /**
      * Create coupon & retrieve data
      *
-     * @return  object
+     * @return object
      */
-    public function get()
+    public function create()
     {
-        if ($this->type === 'per') {
-            $this->couponData['percent_off'] = $this->amount;
+        $couponData = [];
+
+        if ($this->type === 'percent') {
+            $couponData['percent_off'] = $this->amount;
         } else {
-            $this->couponData['amount_off'] = $this->amount;
-            $this->couponData['currency'] = $this->currency;
+            $couponData['amount_off'] = $this->amount;
+            $couponData['currency'] = $this->currency;
         }
 
         if ($this->name) {
-            $this->couponData['name'] = $this->name;
-            $this->couponData['id'] = $this->name;
+            $couponData['name'] = $this->name;
         }
 
         if ($this->duration === 'forever' || $this->duration === 'once') {
-            $this->couponData['duration'] = $this->duration;
+            $couponData['duration'] = $this->duration;
         } else {
-            $this->couponData['duration'] = $this->duration;
-            $this->couponData['duration_in_months'] = $this->durationMonth;
+            $couponData['duration'] = $this->duration;
+            $couponData['duration_in_months'] = $this->durationMonth;
         }
 
         try {
-            Stripe::setApiKey($this->secretKey);
-            $coupon = Coupon::create($this->couponData);
+            $coupon = $this->stripe->coupons->create($couponData);
+            return $coupon;
+        } catch (\Exception $e) {
+            return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
+        }
+    }
 
+    public function retrieve($id)
+    {
+        try {
+            $coupon = $this->stripe->coupons->retrieve($id);
+            return $coupon;
+        } catch (\Exception $e) {
+            return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
+        }
+    }
+
+    public function lists()
+    {
+        try {
+            $coupon = $this->stripe->coupons->all();
             return $coupon;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
@@ -202,10 +184,7 @@ class StripeCoupon
     public function delete($id)
     {
         try {
-            Stripe::setApiKey($this->secretKey);
-            $coupon = Coupon::retrieve($id);
-            $coupon->delete();
-
+            $coupon = $this->stripe->coupons->delete($id);
             return $coupon;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
