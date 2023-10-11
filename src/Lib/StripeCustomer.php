@@ -45,18 +45,24 @@ class StripeCustomer
 
 
     /**
-     * set customer source (card) , email
-     * https://stripe.com/docs/api/customers/create
-     *
-     * @param  array  $datas
+     * Set customer name.
+     * 
+     * @param string $data customer name
      * @return $this
      */
-    public function createl($datas)
-    {
-        foreach ($datas as $key => $data) {
-            $this->createCustomerData[$key] = $data;
-        }
+    public function name($data) {
+        $this->name = $data;
+        return $this;
+    }
 
+    /**
+     * Set customer email.
+     * 
+     * @param string $data customer email
+     * @return $this
+     */
+    public function email($data) {
+        $this->email = $data;
         return $this;
     }
 
@@ -69,16 +75,6 @@ class StripeCustomer
     public function metadata($data)
     {
         $this->metadata = $data;
-        return $this;
-    }
-
-    public function name($data) {
-        $this->name = $data;
-        return $this;
-    }
-
-    public function email($data) {
-        $this->email = $data;
         return $this;
     }
 
@@ -111,9 +107,9 @@ class StripeCustomer
     }
 
     /**
-     * Retrive customer with $cusIdid.
+     * Retrive customer with $id.
      *
-     * @param  string  $id
+     * @param string $id
      * @return object
      */
     public function retrieve($id)
@@ -127,6 +123,12 @@ class StripeCustomer
 
     }
 
+    /**
+     * Delete customer with $id
+     * 
+     * @param string|integer $id
+     * @return object
+     */
     public function delete($id) {
         try {
             $customer = $this->stripe->customers->delete($id);
@@ -136,6 +138,11 @@ class StripeCustomer
         }
     }
 
+    /**
+     * Retrieve all customers.
+     * 
+     * @return array
+     */
     public function lists() {
         try {
             $customers = $this->stripe->customers->all();
@@ -145,6 +152,12 @@ class StripeCustomer
         }
     }
 
+    /**
+     * Retrieve customer all cards.
+     * 
+     * @param string|integer $id customer id.
+     * @return array
+     */
     public function cards($id)
     {
         try {
@@ -167,6 +180,13 @@ class StripeCustomer
         }
     }
 
+    /**
+     * Add new card for customer with customer id.
+     * 
+     * @param string|integer $cusId
+     * @param string $cardToken genearte by stripe.js ui side.
+     * @param integer $max how many card can add for a customer.
+     */
     public function addCard($cusId, $cardToken, $max = 3)
     {
         try {
@@ -184,11 +204,17 @@ class StripeCustomer
         }
     }
 
-    public function deleteCard($cusId, $cardToken)
+    /**
+     * Delete a card
+     * 
+     * @param string|integer $cusId
+     * @param string $cardId card id
+     */
+    public function deleteCard($cusId, $cardId)
     {
         try {
             if (count($this->cards($cusId)) > 1) {
-                $customerSource = $this->stripe->customers->deleteSource($cusId, $cardToken);
+                $customerSource = $this->stripe->customers->deleteSource($cusId, $cardId);
                 return $customerSource;
             }
 

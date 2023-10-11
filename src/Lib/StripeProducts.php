@@ -17,13 +17,24 @@ class StripeProducts
       $this->stripe = new StripeClient($this->secretKey);
   }
 
+  /**
+   * Set the product name.
+   * 
+   * @param string $name product name.
+   * @return $this
+   */
   public function name($name)
   {
     $this->productName = $name;
     return $this;
   }
 
-  public function  create()
+  /**
+   * Create a new product.
+   * 
+   * @return object
+   */
+  public function create()
   {
     $productData = [
       'name' => $this->productName
@@ -37,6 +48,12 @@ class StripeProducts
     }
   }
 
+  /**
+   * Retrieve a product with $id
+   * 
+   * @param string|integer $id
+   * @return object
+   */
   public function retrieve($id)
   {
     try {
@@ -47,6 +64,12 @@ class StripeProducts
     }
   }
 
+  /**
+   * Delete a product with $id
+   * 
+   * @param string|integer $id
+   * @return object
+   */
   public function delete($id)
   {
     try {
