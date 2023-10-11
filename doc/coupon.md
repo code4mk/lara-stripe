@@ -9,8 +9,8 @@ use Code4mk\LaraStripe\Lib\StripeCoupon;
 
 $stripeCoupon = new StripeCoupon();
 
-$stripeCoupon->amount(10.00) // Set the coupon amount
-    ->name('my_coupon') // Set the coupon name
+$stripeCoupon->name('my_coupon') // Set the coupon name
+    ->amount(10.00) // Set the coupon amount
     ->duration('once') // Set the coupon duration
     ->create(); // Create the coupon
 ```

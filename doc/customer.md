@@ -1,123 +1,140 @@
-# Customer
+ ## Usage
 
-`customer` for get future payment as like `subscription fee`.
+Here's how you can use the Stripe Customer Library to perform various customer-related actions in your Laravel application.
 
-LaraStripe has LaraStripeCustomer alias for customer related task.
-
-# create new customer
-
-## methods
-
-### setup
-
-Set secret key .
-
-* `secret_key` required
+### Initialization
 
 ```php
-LaraStripeCustomer::setup([
-    'secret_key'=>'sk_test_mBGoFuccDy2KCD4pobbaixKK00qUW0ghu1'
-])
+use Code4mk\LaraStripe\Lib\StripeCustomer;
 
+// Initialize the Stripe Customer instance
+$stripeCustomer = new StripeCustomer();
 ```
 
-### create
+### Creating a Customer
 
-Customer important data as like source(card token),email
-
-* `source` required
-* [see more on stripe](https://stripe.com/docs/api/customers/create)
+You can create a new customer by specifying their name, email, and optional metadata. 
 
 ```php
-LaraStripeCustomer::create([
-    ['source' => 'card token','email' => 'test@test.co']
-])
+$customer = $stripeCustomer
+    ->name($customerName)
+    ->email($customerEmail)
+    ->metadata($metadata)
+    ->create();
+
+if ($customer->isError) {
+    // Handle errors
+    echo $customer->message;
+} else {
+    // Customer created successfully
+}
 ```
 
-### metadata
+### Retrieving a Customer
 
-* customer extra info or data set with metadata as array.
+You can retrieve a customer by their ID.
 
 ```php
-LaraStripeCustomer::metadata([
-    'phone' => '212',
-    'age' => 23
-])
+$customer = $stripeCustomer->retrieve($customerId);
+
+if ($customer->isError) {
+    // Handle errors
+    echo $customer->message;
+} else {
+    // Use $customer to access customer data
+}
 ```
 
-### get
+### Deleting a Customer
 
-`get` method return customer data after customer create complete.
-
-* return type `object`
+You can delete a customer by their ID.
 
 ```php
-LaraStripeCustomer::get();
+$customer = $stripeCustomer->delete($customerId);
+
+if ($customer->isError) {
+    // Handle errors
+    echo $customer->message;
+} else {
+    // Customer deleted successfully
+}
 ```
 
-## full code
+### Retrieving All Customers
+
+You can retrieve a list of all customers.
 
 ```php
-$cus = LaraStripeCustomer::setup([
-    'secret_key'=>'sk_test_mBGoFuccDy2KCD4pobbaixKK00qUW0ghu1'
-])
-->create(['source' => 'tok_visa','email' => 'test@test.co'])
-->metadata(['phone' => '212','age'=>23])
-->get();
+$customers = $stripeCustomer->lists();
 
-return response()->json($cus);
+if ($customers->isError) {
+    // Handle errors
+    echo $customers->message;
+} else {
+    // Use $customers to access the list of customers
+}
 ```
 
-`~ NB: store customer id on db for future payment`
+### Managing Customer Cards
 
-## `see - charge with customer `
+You can manage a customer's cards, such as listing, adding, deleting, or setting a default card.
 
- same as  [charge create with card](https://github.com/code4mk/lara-stripe/blob/master/doc/charge.md#full-code) with card. only `card method` exchage with `customer method`
-
-* `customer($cusId)`
+#### Listing Customer Cards
 
 ```php
-$charge = LaraStripeCharge::setup([
-                    'secret_key'=>'sk_test_mBGoFuccDy2KCD4pobbaixKK00qUW0ghu1',
-                    'public_key' => 'pk_test_VNi7F1zcwwffZIi1tAkX1dVs00JfKPsCGR',
-                    'currency'=>'usd'
-                  ])
-                  ->customer('cus_G2L2KoumL45hzn')
-                  ->amount(25.54567)
-                  ->metadata(['tnx_id' => 'tnx-32343','purchase_id' => 'trgtrg45'])
-                  ->description('charge with customer id ')
-                  ->purchase()
-                  ->get();
-return response()->json($charge);
+$cards = $stripeCustomer->cards($customerId);
+
+if ($cards->isError) {
+    // Handle errors
+    echo $cards->message;
+} else {
+    // Use $cards to access the list of customer cards
+}
 ```
 
-# retrieve customer
-
-* `retrieve` method has `cusId` param which is customer id.
-* return type `object`
+#### Adding a New Card
 
 ```php
-$cus = LaraStripeCustomer::setup([
-    'secret_key'=>'sk_test_mBGoFuccDy2KCD4pobbaixKK00qUW0ghu1'
-])
-->retrieve('cus_G2L2KoumL45hzn');
+$cardToken = 'your_stripe_card_token';
+$cardMaxLimit = 3; // Set the maximum number of cards per customer
 
-return response()->json($cus);
+$response = $stripeCustomer->addCard($customerId, $cardToken, $cardMaxLimit);
+
+if ($response->isError) {
+    // Handle errors
+    echo $response->message;
+} else {
+    // Card added successfully
+}
 ```
 
-# change card
-
-Sometimes customer want to change their card.
-
-* `changeCard($cusId,$cardToken)` has `cusId` param which is customer id and `cardToken` param which is card token .
-* return type `object`
+#### Deleting a Card
 
 ```php
-$cus = LaraStripeCustomer::setup([
-    'secret_key'=>'sk_test_mBGoFuccDy2KCD4pobbaixKK00qUW0ghu1'
-])
-->changeCard('cus_G2L2KoumL45hzn','tok_amex');
+$cardId = 'stripe_card_id';
 
-return response()->json($cus);
+$response = $stripeCustomer->deleteCard($customerId, $cardId);
 
+if ($response->isError) {
+    // Handle errors
+    echo $response->message;
+} else {
+    // Card deleted successfully
+}
 ```
+
+#### Setting Default Card
+
+```php
+$defaultCardId = 'stripe_default_card_id';
+
+$response = $stripeCustomer->setDefaultCard($customerId, $defaultCardId);
+
+if ($response->isError) {
+    // Handle errors
+    echo $response->message;
+} else {
+    // Default card set successfully
+}
+```
+

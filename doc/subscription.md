@@ -13,12 +13,11 @@ $customerId = 'customer_id_here';
 $priceId = 'price_id_here';
 
 $stripeSubscription->customer($customerId) // Set the customer ID
-    ->priceId($priceId) // Set the price (plan) ID
+    ->priceId($priceId) // Set the price ID
     ->metaData(['key' => 'value']) // Set additional metadata (optional)
-    ->trialPlan() // Use the default trial from the plan (optional)
-    ->trial(7) // Set a custom trial period in days (optional)
-    ->source('card_source_id') // Set the card source (optional)
-    ->coupon('coupon_code_here') // Apply a coupon (optional)
+    ->trial(7) // Set a custom trial period in days 
+    ->source('card_source_id') // Set the card source
+    ->coupon('coupon_code_here') // Apply a coupon
     ->create(); // Create the subscription
 ```
 

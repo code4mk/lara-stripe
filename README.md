@@ -26,6 +26,7 @@ php artisan vendor:publish --provider="Code4mk\LaraStripe\LaraStripeServiceProvi
 * [Prices doc](https://github.com/code4mk/lara-stripe/blob/master/doc/prices.md)
 * [Subscription doc](https://github.com/code4mk/lara-stripe/blob/master/doc/subscription.md)
 * [Coupon doc](https://github.com/code4mk/lara-stripe/blob/master/doc/coupon.md)
+* [promotion doc](https://github.com/code4mk/lara-stripe/blob/master/doc/promotion.md)
 
 # Demo repo
 
@@ -34,5 +35,4 @@ php artisan vendor:publish --provider="Code4mk\LaraStripe\LaraStripeServiceProvi
 # Courtesy
 
 * [stripe/stripe-php](https://github.com/stripe/stripe-php)
-
 * https://jsfiddle.net/ywain/o2n3js2r/

@@ -9,11 +9,10 @@ use Code4mk\LaraStripe\Lib\StripePrices;
 
 $stripePrices = new StripePrices();
 
-$stripePrices->product(['name' => 'Product Name']) // Set the product details
+$stripePrices->product('product id') // Set the product id
     ->amount(10.00) // Set the price amount
     ->interval('month') // Set the billing interval (day, week, month, year)
     ->currency('usd') // Set the currency
-    ->extra(['metadata' => ['key' => 'value']]) // Set extra properties
     ->trial(7) // Set the trial period in days (optional)
     ->description('Subscription Plan') // Set a description (optional)
     ->createPrice(); // Create the subscription price
