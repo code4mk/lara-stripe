@@ -185,20 +185,14 @@ class StripeCustomer
      * 
      * @param string|integer $cusId
      * @param string $cardToken genearte by stripe.js ui side.
-     * @param integer $max how many card can add for a customer.
      */
-    public function addCard($cusId, $cardToken, $max = 3)
+    public function addCard($cusId, $cardToken)
     {
         try {
-            if (count($this->cards($cusId)) <= $max - 1) {
-                $customer = $this->stripe->customers->createSource($cusId, [
-                    'source' => $cardToken,
-                ]);
-                return $customer;
-            }
-
-            return "You already exceed card quota {$max}";
-
+            $customer = $this->stripe->customers->createSource($cusId, [
+                'source' => $cardToken,
+            ]);
+            return $customer;
         } catch (\Exception $e) {
             return (object) ['isError' => 'true', 'message' => $e->getMessage()];
         }

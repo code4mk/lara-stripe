@@ -10,11 +10,13 @@ class StripeProducts
   private $stripe;
 
   private $productName;
+  public $isProduction;
 
   public function __construct()
   {
       $this->secretKey = config('lara-stripe.secret_key');
       $this->stripe = new StripeClient($this->secretKey);
+      $this->isProduction = config('lara-stripe.is_production');
   }
 
   /**
@@ -39,6 +41,10 @@ class StripeProducts
     $productData = [
       'name' => $this->productName
     ];
+
+    if ($this->isProduction) {
+      $productData['livemode'] = true;
+    }
 
     try {
       $product = $this->stripe->products->create($productData);

@@ -11,7 +11,7 @@ $stripePrices = new StripePrices();
 
 $stripePrices->product('product id') // Set the product id
     ->amount(10.00) // Set the price amount
-    ->interval('month') // Set the billing interval (day, week, month, year)
+    ->interval('month', 1) // Set the billing interval (day, week, month, year) then interval count.
     ->currency('usd') // Set the currency
     ->trial(7) // Set the trial period in days (optional)
     ->description('Subscription Plan') // Set a description (optional)

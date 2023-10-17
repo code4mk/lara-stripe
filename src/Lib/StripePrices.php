@@ -65,6 +65,7 @@ class StripePrices
      * A brief description of the plan, hidden from customers.
      */
     private $nickname;
+    private $intervalCount = '';
 
     public function __construct()
     {
@@ -102,9 +103,14 @@ class StripePrices
      * @param string $type [day,week,month,year]
      * @return $this
      */
-    public function interval($type)
+    public function interval($type, $count='')
     {
         $this->interval = $type;
+
+        if ($count !== '') {
+            $this->intervalCount = $count;
+        }
+
         return $this;
     }
 
@@ -165,10 +171,18 @@ class StripePrices
      */
     public function createPrice()
     {
+        $recuringData = [
+            'interval' => $this->interval,
+        ];
+
+        if ($this->intervalCount) {
+            $recuringData['interval_count'] = $this->intervalCount;
+        }
+
         $priceData = [
             'unit_amount' => $this->amount,
             'currency' => $this->currency,
-            'recurring' => ['interval' => $this->interval],
+            'recurring' => $recuringData,
             'product' => $this->product,
         ];
 
