@@ -206,4 +206,22 @@ class StripeCharge
             return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
         }
     }
+
+    public function refund($chargeId, $amount = null)
+    {
+        $refundData = [
+            'charge' => $chargeId,
+        ];
+
+        if ($amount) {
+            $refundData['amount'] = round($amount, 2) * 100;
+        }
+
+        try {
+            $refund = $this->stripe->refunds->create($refundData);
+            return $refund;
+        } catch (\Exception $e) {
+            return (object) ['isError' => 'true', 'message' => $e->getMessage(), 'stripe' => $e->getJsonBody()['error']];
+        }
+    }
 }

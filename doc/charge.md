@@ -37,3 +37,13 @@ $stripeCharge = new StripeCharge();
 
 $stripeCharge->lists();
 ```
+
+### Refund Charge
+
+```php
+use Code4mk\LaraStripe\Lib\StripeCharge;
+
+$stripeCharge = new StripeCharge();
+
+$stripeCharge->refund('charge_id');
+```
