@@ -96,9 +96,8 @@ if ($cards->isError) {
 
 ```php
 $cardToken = 'your_stripe_card_token';
-$cardMaxLimit = 3; // Set the maximum number of cards per customer
 
-$response = $stripeCustomer->addCard($customerId, $cardToken, $cardMaxLimit);
+$response = $stripeCustomer->addCard($customerId, $cardToken);
 
 if ($response->isError) {
     // Handle errors
