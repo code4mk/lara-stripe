@@ -71,6 +71,10 @@ class StripeSubscription
 
     private $stripe;
 
+    private $promoCode;
+
+    private $quantity;
+
     public function __construct()
     {
         $this->secretKey = config('lara-stripe.secret_key');
@@ -140,6 +144,12 @@ class StripeSubscription
         return $this;
     }
 
+    public function quantity($data = 1)
+    {
+        $this->quantity = $data;
+        return $this;
+    }
+
     /**
      * set customer card source
      *
@@ -165,6 +175,18 @@ class StripeSubscription
     }
 
     /**
+     * Coupon apply
+     *
+     * @param string $code
+     * @return $this
+     */
+    public function promo($code)
+    {
+        $this->promoCode = $code;
+        return $this;
+    }
+
+    /**
      * Create & retreive all data.
      *
      * @return object
@@ -174,7 +196,7 @@ class StripeSubscription
         $subscriptionsData = [
             'customer' => $this->customer,
             'items' => [
-                ['price' => $this->price],
+                ['price' => $this->price, 'quantity' => $this->quantity],
             ],
         ];
 
@@ -186,6 +208,11 @@ class StripeSubscription
         // copuon
         if ($this->couponCode != '') {
             $subscriptionsData['coupon'] = $this->couponCode;
+        }
+
+        // promotion code
+        if ($this->promoCode != '') {
+            $subscriptionsData['promotion_code'] = $this->promoCode;
         }
 
         // default source

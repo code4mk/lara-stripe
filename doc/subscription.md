@@ -16,8 +16,10 @@ $stripeSubscription->customer($customerId) // Set the customer ID
     ->priceId($priceId) // Set the price ID
     ->metaData(['key' => 'value']) // Set additional metadata (optional)
     ->trial(7) // Set a custom trial period in days 
+    ->quantity(1) // set the quantity
     ->source('card_source_id') // Set the card source
     ->coupon('coupon_code_here') // Apply a coupon
+    ->promo('promotion_code_here') // Apply promotion
     ->create(); // Create the subscription
 ```
 
