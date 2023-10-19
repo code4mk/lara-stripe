@@ -17,6 +17,16 @@ composer require code4mk/lara-stripe
 php artisan vendor:publish --provider="Code4mk\LaraStripe\LaraStripeServiceProvider" --tag=config
 ```
 
+## Set .env 
+
+```
+STRIPE_PUBLIC_KEY=""
+STRIPE_SECRET_KEY=""
+STRIPE_SUCCESS_URL=""
+STRIPE_CANCEL_URL=""
+STRIPE_IS_PRODUCTION="true|false"
+```
+
 # Documentation
 
 * [doc](https://github.com/code4mk/lara-stripe/tree/master/doc)
