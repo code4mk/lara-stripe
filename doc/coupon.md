@@ -64,11 +64,3 @@ if ($result->isError === true) {
     echo "Stripe Error: " . $result->stripe['message'];
 }
 ```
-
-## License
-
-This library is open-source software licensed under the MIT License. You can find the full license text in the [LICENSE](LICENSE) file.
-
-## Author
-
-This library was created by [Your Name] and is maintained by [Your Organization]. Feel free to contribute by submitting issues or pull requests on the [GitHub repository](https://github.com/your-repo-link).

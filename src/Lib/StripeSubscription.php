@@ -73,7 +73,7 @@ class StripeSubscription
 
     private $promoCode;
 
-    private $quantity;
+    private $quantity = 1;
 
     public function __construct()
     {
